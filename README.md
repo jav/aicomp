@@ -22,4 +22,5 @@ Web-ui -> coordinator -> workers (plural) -> Game-master(one per worker)
 Here's a pretty drawing: https://docs.google.com/drawings/d/1CNR-bygFxTm2PgKa87mY51YLF9kd-gQ4qvTOURQUnJM/edit?usp=sharing
 
 Q: Why didn't you just fork github.org/aichallenge/aichallenge?
-A: I couldn't figure out their license.
+
+A: I couldn't figure out their license. It seems to be a non-trivial issue: https://github.com/aichallenge/aichallenge/issues/276

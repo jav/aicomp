@@ -22,11 +22,11 @@ class AccountTestCase(unittest.TestCase):
         acc = Account.fetch(user='foo')
         assert acc is None
         acc = Account.fetch(user='user')
-        assert acc.user = 'user'
+        assert acc.user == 'user'
         acc = Account.fetch(email='bar')
         assert acc is None
         acc = Account.fetch(email='email')
-        assert acc.email = 'email'
+        assert acc.email == 'email'
 
     def testFetchAccount(self):
         # Hey, this test is redundant(!) with the previous, but I can't
@@ -39,11 +39,11 @@ class AccountTestCase(unittest.TestCase):
         acc = Account.fetch(user='foo')
         assert acc is None
         acc = Account.fetch(user='user')
-        assert acc.user = 'user'
+        assert acc.user == 'user'
         acc = Account.fetch(email='bar')
         assert acc is None
         acc = Account.fetch(email='email')
-        assert acc.email = 'email'
+        assert acc.email == 'email'
 
     def testModifyAccount(self):
         # You'r allowed to change passwd & e-mail
@@ -51,32 +51,33 @@ class AccountTestCase(unittest.TestCase):
         acc = Account(user='user', passwd='passwd',email='email')
         acc.save()
         acc = Account.fetch(user='user')
-        assert acc.user = 'user'
+        assert acc.user == 'user'
 
         acc.user='newname'
         self.assertRaises(TypeError, acc.save)
 
         acc = Account.fetch(user='user')
-        assert acc.user = 'user'
-        assert acc.passwd = 'passwd'
-        assert acc.email = 'email'
+        assert acc.user == 'user'
+        assert acc.passwd == 'passwd'
+        assert acc.email == 'email'
         acc.passwd = "newpass"
         acc.email = "newmail"
         acc.save()
 
         acc = None
         acc = Account.fetch(user='user')
-        assert acc.user = 'user'
-        assert acc.passwd = 'newpass'
-        assert acc.email = 'newmail'
+        assert acc.user == 'user'
+        assert acc.passwd == 'newpass'
+        assert acc.email == 'newmail'
 
 
     def testDeleteAccount(self):
         acc = Account(user='user', passwd='passwd',email='email')
         acc.save()
         acc = Account.fetch(user='user')
-        assert acc.user = 'user'
+        assert acc.user == 'user'
 
         acc.delete()
         acc = Account.fetch(user='user')
         assert acc is None
+
