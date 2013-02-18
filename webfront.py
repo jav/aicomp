@@ -7,6 +7,8 @@
 from flask import Flask, jsonify, render_template
 import json
 
+from account import Account
+
 app = Flask(__name__)
 
 #init
@@ -29,11 +31,11 @@ def login():
 def modify_account():
     pass
 
-@app.route('/account/remove', methods=['GET', 'POST'])
-def remove_account():
+@app.route('/account/delete', methods=['GET', 'POST'])
+def delete_account():
     # This should not allow some other account to take whichever
     # we are key:ing accounts on, be it id or name.
-    # Let's tag them as removed and ignore them.
+    # Let's tag them as deleted and ignore them.
     pass
 
 
@@ -51,8 +53,8 @@ def player_modify():
     # nope nope nope nope. Uncool!
     pass
 
-@app.route('/player/remove', methods=['GET', 'POST'])
-def player_remove():
+@app.route('/player/delete', methods=['GET', 'POST'])
+def player_delete():
     # Removing a player entierly is ok.
     # Keep in mind to not reuse key-id (id, name, whatever)
     pass
