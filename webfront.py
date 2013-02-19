@@ -8,6 +8,7 @@ from flask import Flask, jsonify, render_template
 import json
 
 from account import Account
+from database import init_db, db_session
 
 app = Flask(__name__)
 
@@ -18,7 +19,7 @@ def front_page():
     return render_template('frontpage.html')
 
 @app.route('/register', methods=['GET', 'POST'])
-def login():
+def register():
     # Create a new user
     pass
 
@@ -59,10 +60,17 @@ def player_delete():
     # Keep in mind to not reuse key-id (id, name, whatever)
     pass
 
+# Wrong verison of Flask?
+#@app.teardown_request
+#def shutdown_session(exception=None):
+#    '''kill db sessions at the end of each request'''
+#    db_session.remove()
 
 if __name__ == "__main__":
     config = {}
     config = json.load(open('webfront.conf','r'))
+
+    init_db()
 
     port = config.setdefault('port', 60000)
     app.run(debug=True, port=port)
