@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block body %}
+  {% if session.logged_in %}
+    <h2> You are already logged in, you shouldn't login again!</h2>
+  {% endif %}
+
+    <form action="{{ url_for('login') }}" method=post class=register>
+      <dl>
+        <dt>Username:
+        <dd><input type="text" size="30" name="user" />
+        <dt>Password:
+        <dd><input type="password" name="password" size="40" />
+        <dd><input type="submit" value="Login!">
+      </dl>
+    </form>
+
+{% endblock %}

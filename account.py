@@ -1,15 +1,10 @@
 import hashlib
 import random
-
-from sqlalchemy import Column, Integer, String, MetaData
-from sqlalchemy.exc import OperationalError
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, mapper
-from sqlalchemy.ext.declarative import declarative_base
-
+from sqlalchemy import Column, Integer, String
 from types import NoneType
 
-from database import Base
+from database import Base, db_session
+from player import Player
 
 class Account(Base):
     __tablename__ = 'accounts'
@@ -43,7 +38,9 @@ class Account(Base):
         return (self.salt, m.hexdigest())
 
     def test_passwd(self, passwd_str):
-        m = mashlib.sha1()
+        m = hashlib.sha1()
         m.update(self.salt+passwd_str)
-
         return self.passwd == m.hexdigest()
+
+    def get_players(self):
+        return db_session.query(Player).filter_by(owner=self.user).all()

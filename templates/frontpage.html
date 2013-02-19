@@ -3,7 +3,7 @@
   <ul class=entries>
   {% if members %}
     {% for member in members %}
-      <li><h2>{{ member.user|safe }}</h2>{{ member.user|safe }}
+      <li><h2>{{ member.user }}</h2>{{ member.email }}
     {% else %}
       <li><em>Unbelievable.  No entries here so far</em>
     {% endfor %}
