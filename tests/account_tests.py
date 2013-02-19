@@ -1,5 +1,7 @@
 import unittest
 
+from sqlalchemy import create_engine
+
 from account import Account
 
 class AccountTestCase(unittest.TestCase):
@@ -12,13 +14,12 @@ class AccountTestCase(unittest.TestCase):
         pass
 
     def testCreateAccount(self):
-        acc = Account(user='user')
-        self.assertRaise(TypeError, acc.save)
-        acc = Account(user='user', passwd='passwd')
-        self.assertRaise(TypeError, acc.save)
+        self.assertRaises(TypeError, Account, user='user')
+        self.assertRaises(TypeError, Account, passwd='passwd')
         acc = Account(user='user', passwd='passwd',email='email')
         acc.save()
 
+        print "Acc made:", acc
         acc = Account.fetch(user='foo')
         assert acc is None
         acc = Account.fetch(user='user')
