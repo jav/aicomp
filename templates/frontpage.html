@@ -1,3 +1,12 @@
-<html>
-<body>WELCOME!</body>
-</html>
+{% extends "layout.html" %}
+{% block body %}
+  <ul class=entries>
+  {% if members %}
+    {% for member in members %}
+      <li><h2>{{ member.user|safe }}</h2>{{ member.user|safe }}
+    {% else %}
+      <li><em>Unbelievable.  No entries here so far</em>
+    {% endfor %}
+  {% endif %}
+  </ul>
+{% endblock %}
