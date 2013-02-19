@@ -1,4 +1,11 @@
 class EloRater:
+    """
+       Accepts player rating and player scores and returns two new
+       suggested ratings for the players.
+
+       Example: call with getRatings((1000,1000),(1,0)) to simulate
+       two new players where one player won against the other. 
+    """
     @staticmethod
     def getRatings(ratings, scores):
         p1_rating,p2_rating = map(float, ratings)
