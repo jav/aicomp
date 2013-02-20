@@ -7,13 +7,13 @@
     <li><em>Unbelievable.  No entries here so far</em>
   {% endfor %}
   </ul>
-    <form action="{{ url_for('player_add') }}" method="post" class="register" enctype="multipart/form-data" >
+    <form action="{{ url_for('player_add') }}" method="POST" class="register" enctype="multipart/form-data" >
       <dl>
         <dt>Desc:
         <dd><textarea name="desc"></textarea>
         <dt>FILEZ!:
         <dd><input type="file" name="player_archive" />
-        <dd><input type="submit" value="Upload!">
+        <dd><input type="submit" value="Upload!" />
       </dl>
     </form>
 {% endblock %}

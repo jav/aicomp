@@ -7,6 +7,7 @@
 from flask import Flask, jsonify, render_template, session
 from flask import request, redirect, url_for
 import json
+import os
 from werkzeug import secure_filename
 
 from account import Account
@@ -100,20 +101,21 @@ def player_add():
 
     # upload a player
     if request.method == 'POST':
-        if 'player_archive' not in request:
+        if 'player_archive' not in request.files:
             error.append("Failed to upload archive.")
         else:
             f = request.files['player_archive']
             filename = secure_filename(f.filename)
+            print "filename:", filename
             (_ ,ext) = os.path.splitext(filename)
             ext = ext.strip('.')
-            if ext not in ['tar', 'zip', 'gz']:
+            if ext not in ['tar', 'zip', 'gz', 'tgz']:
                 error.append("Extension %s not allowed."%ext)
             else:
                 f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return redirect(url_for('uploaded_file',
-                                    filename=filename))
-            
+                return redirect(url_for('player_list',
+                                        filename=filename))
+
 
             err = create_player(desc, )
             if err:
@@ -124,7 +126,7 @@ def player_add():
 
             return redirect(url_for('front_page', error=error))
 
-    return "NOT YET IMPLEMENTED"
+    return redirect(url_for('front_page', error=error))
 
 @app.route('/player/modify', methods=['GET', 'POST'])
 def player_modify():

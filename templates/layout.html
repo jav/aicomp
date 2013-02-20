@@ -8,7 +8,7 @@
     <a href="{{ url_for('login') }}">log in</a>
     <a href="{{ url_for('register') }}">register</a>
   {% else %}
-    Hi {{session.user}}
+    Hi {{session.user}} - <a href="{{url_for('player_list')}}">Players</a>
     <a href="{{ url_for('logout') }}">log out</a>
   {% endif %}
   </div>
