@@ -11,6 +11,10 @@ from player import Player
 # And have some sensible way of picking matches so that you can't, e.g.
 # flood the game with your own players, where all but one have one exact weakness
 # that the last one always exploits.
+# Right now, it pulls players randomly from the global list
+# It would be nice if we used the priorityqueue to, some how, give priority to new players
+
+import heapq
 
 class QueueEmptyError(Exception):
     pass
@@ -23,6 +27,7 @@ class ChallengerElement(Base):
     player_id = Column(Integer, ForeignKey("player.id"))
     relationship(Player, primaryjoin="player.id==challengerelement.player_id")
 
+class ChallengeQueue(object):
     def __init__(self):
         pass
 
@@ -70,3 +75,16 @@ class ChallengeQueue(Base):
 
         print "_random_select_set(%s, %s) returns: %s"%(count, query, result_set)
         return list(result_set)
+
+    def append(self, item, prio=0):
+        #Set priority with prio, zero is highest
+        heapq.heappush(self.queue, (prio, item))
+
+    def pop(self):
+        if not self.queue:
+            raise QueueEmptyError
+        else:
+            return heapq.heappop(self.queue)[1]
+
+    def __len__(self):
+        return len(self.queue)
