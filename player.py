@@ -26,4 +26,3 @@ class Player(Base):
 
     def get_files_uri(self):
         return self.files
-
