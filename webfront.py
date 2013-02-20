@@ -8,6 +8,8 @@ from flask import Flask, jsonify, render_template, session
 from flask import request, redirect, url_for
 import json
 import os
+import shutil
+import tempfile
 from werkzeug import secure_filename
 
 from account import Account
@@ -94,7 +96,6 @@ def player_list():
         return "REQUIRES LOGIN"
     acc = session['user']
     players=acc.get_players()
-    print "Get_players:", players
     return render_template('players_for_account.html', players=players)
 
 @app.route('/player/add', methods=['GET', 'POST'])
@@ -114,20 +115,26 @@ def player_add():
             print "filename:", filename
             (_ ,ext) = os.path.splitext(filename)
             ext = ext.strip('.')
-            if ext not in ['tar', 'zip', 'gz', 'tgz']:
+            if ext not in app.config['UPLOAD_FILE_EXT']:
                 error.append("Extension %s not allowed."%ext)
             else:
+                tmp_file = os.path.join(tempfile.mkdtemp(), filename)
+                f.save(tmp_file)
+
                 acc_id = session['user'].id
-                dest_dir = os.path.join(app.config['UPLOAD_FOLDER'], str(acc_id))
+                player = create_player(owner=acc_id, desc=request.form['desc'])
+                pl_id = player.id
+                dest_dir = os.path.join(app.config['UPLOAD_FOLDER'], str(acc_id), str(pl_id)
+)
                 try:
                     os.makedirs(dest_dir, 0770)
                 except OSError:
                     pass # Because OSError == dir already exists
+
                 dest_file = os.path.join(dest_dir, filename)
-                f.save(dest_file)
-                create_player(owner=acc_id, desc=request.form['desc'], files=dest_file)
-                return redirect(url_for('player_list',
-                                        filename=filename))
+                shutil.move(tmp_file, dest_file)
+                player.files = dest_file
+                return redirect(url_for('player_list', filename=filename))
 
             if err:
                 error.append(err)
@@ -178,15 +185,14 @@ def create_account(user, passwd, email):
     return acc
 
 def create_player(**kwargs):
-    for k in ['owner', 'desc', 'files']:
+    for k in ['owner', 'desc']:
         if k not in kwargs:
             return False
 
     # TODO: player should have a foregin key to its owner
     # TODO: Doublecheck that the owner exists
 
-    player = Player(owner=kwargs['owner'], desc=kwargs['desc'], files=kwargs['files'])
-    print "GENERATED PLAYER:", player
+    player = Player(owner=kwargs['owner'], desc=kwargs['desc'])
     db_session.add(player)
     db_session.commit()
     return player
