@@ -12,6 +12,7 @@ from werkzeug import secure_filename
 
 from account import Account
 from database import init_db, db_session
+from player import Player
 
 app = Flask(__name__)
 
@@ -93,10 +94,14 @@ def player_list():
         return "REQUIRES LOGIN"
     acc = session['user']
     players=acc.get_players()
+    print "Get_players:", players
     return render_template('players_for_account.html', players=players)
 
 @app.route('/player/add', methods=['GET', 'POST'])
 def player_add():
+    if not is_logged_in():
+        return render_template('frontpage.html', errors="Login required.")
+
     error = []
 
     # upload a player
@@ -112,12 +117,18 @@ def player_add():
             if ext not in ['tar', 'zip', 'gz', 'tgz']:
                 error.append("Extension %s not allowed."%ext)
             else:
-                f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                acc_id = session['user'].id
+                dest_dir = os.path.join(app.config['UPLOAD_FOLDER'], str(acc_id))
+                try:
+                    os.makedirs(dest_dir, 0770)
+                except OSError:
+                    pass # Because OSError == dir already exists
+                dest_file = os.path.join(dest_dir, filename)
+                f.save(dest_file)
+                create_player(owner=acc_id, desc=request.form['desc'], files=dest_file)
                 return redirect(url_for('player_list',
                                         filename=filename))
 
-
-            err = create_player(desc, )
             if err:
                 error.append(err)
             else:
@@ -135,6 +146,8 @@ def player_modify():
     # We should be able to learn from the submissions, and
     # this would kill history.
     # nope nope nope nope. Uncool!
+    # Well, enable/disable would be nice.
+    # And maybe a comment (or log field)
     return "NOT YET IMPLEMENTED"
 
 @app.route('/player/delete', methods=['GET', 'POST'])
@@ -164,10 +177,24 @@ def create_account(user, passwd, email):
     db_session.commit()
     return acc
 
-class DictToConfObject(object):
-    def __init__(self, d):
-        for k,v in d.iteritems():
-            setattr(self, k.upper(), v)
+def create_player(**kwargs):
+    for k in ['owner', 'desc', 'files']:
+        if k not in kwargs:
+            return False
+
+    # TODO: player should have a foregin key to its owner
+    # TODO: Doublecheck that the owner exists
+
+    player = Player(owner=kwargs['owner'], desc=kwargs['desc'], files=kwargs['files'])
+    print "GENERATED PLAYER:", player
+    db_session.add(player)
+    db_session.commit()
+    return player
+
+def is_logged_in():
+    if not session['logged_in']:
+        return False
+    return True
 
 if __name__ == "__main__":
     config = {}
@@ -179,7 +206,6 @@ if __name__ == "__main__":
     print "app.config", app.config
 
     init_db()
-
 
     app.secret_key = 'UNKNOWN_STRING' #Yes, a popular reference. Let's later fix this (famous last words)
     app.run(port=app.config['PORT'])

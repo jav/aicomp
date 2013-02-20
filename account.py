@@ -42,5 +42,7 @@ class Account(Base):
         m.update(self.salt+passwd_str)
         return self.passwd == m.hexdigest()
 
-    def get_players(self):
-        return db_session.query(Player).filter_by(owner=self.user).all()
+    def get_players(self, db=None):
+        if db is None:
+            db = db_session
+        return db.query(Player).filter_by(owner=self.id).all()

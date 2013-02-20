@@ -2,7 +2,7 @@
 {% block body %}
   <ul class=entries>
   {% for player in players %}
-    <li><h2>{{ player.name }}</h2>{{ player.desc }}
+    <li><h2>{{ player.desc }}</h2>{{ player.files }}
   {% else %}
     <li><em>Unbelievable.  No entries here so far</em>
   {% endfor %}
