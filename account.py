@@ -37,10 +37,21 @@ class Account(Base):
         m.update(self.salt+passwd_str)
         return (self.salt, m.hexdigest())
 
+    def secure_compare(self, real, claimed):
+        if len(claimed) != len(real):
+            return False
+
+        bad_bytes = 0
+        for i in xrange(len(real)):
+            bad_bytes += ord(claimed[i]) ^ ord(real[i])
+
+        return bad_bytes == 0
+
     def test_passwd(self, passwd_str):
         m = hashlib.sha1()
         m.update(self.salt+passwd_str)
-        return self.passwd == m.hexdigest()
+        hexdigest = m.hexdigest()
+        return self.secure_compare(self.passwd, m.hexdigest())
 
     def get_players(self, db=None):
         if db is None:
