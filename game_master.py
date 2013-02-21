@@ -25,7 +25,7 @@ class ProcessHandler():
             self.last_line = self.process.stdout.readline()
         t = Thread(target=readline_threaded)
         t.start()
-        t.join(1)
+        t.join(0.5) 
         if t.isAlive():
             print "ERROR"
         return self.last_line
@@ -43,16 +43,7 @@ class GameMaster(object):
     def __init__(self, player1, player2):
         self.player1 = player1 
         self.player2 = player2
-
-    """
-    Fetches the programs corresponding to each player,
-    unpacks, spawns to subprocesses and plays a game 
-    between them. Then returns the result of the game, or
-    an error in case one of the players failed.
-
-    Note: This is completely insecure atm.
-    """
-    def playMatch(self):
+    
         p1_tar = tarfile.open(self.player1)
         p2_tar = tarfile.open(self.player2)
         p1_tar.extractall(DIR_PREFIX + "/1")
@@ -73,15 +64,20 @@ class GameMaster(object):
         player1_bin_args = ["python",os.getcwd()+"/"+DIR_PREFIX+"/1/" + configs[0]['executable']]
         player2_bin_args = ["python",os.getcwd()+"/"+DIR_PREFIX+"/2/" + configs[1]['executable']]
         
-        p1 = ProcessHandler(player1_bin_args)
-        p2 = ProcessHandler(player2_bin_args)
-        
+        self.p1 = ProcessHandler(player1_bin_args)
+        self.p2 = ProcessHandler(player2_bin_args)
+
+class guessTheNumberMaster(GameMaster):
+    def __init__(self, p1, p2):
+        GameMaster.__init__(self,p1,p2)
+    
+    def playMatch(self):
         # p1 thinks about a number
-        p1.communicate("think\n")
-        number = int(p1.readline())
+        self.p1.communicate("think\n")
+        number = int(self.p1.readline())
         
         # p2 tries to guess the number
-        p2.communicate("guess\n")
-        guessed = int(p2.readline())
+        self.p2.communicate("guess\n")
+        guessed = int(self.p2.readline())
 
         print "thought about " + str(number) + ", guessed " + str(guessed)
