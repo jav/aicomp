@@ -26,8 +26,8 @@ def get_challenge_from_queue(nr_p):
 
     return jsonify(match.serialize())
 
-@app.route('/match/list')
-def matches_list():
+@app.route('/match/list/json')
+def match_list_json():
     matches = []
     for match in db_session.query(Match).all():
         matches.append(match.serialize())
