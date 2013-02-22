@@ -21,20 +21,17 @@ class ProcessHandler():
         print "Spawning process: %s" %(args,)
         self.process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    def communicate(self,input_list):
+    def communicate(self,inp):
         # TODO: blocking?
-        for data in input_list:
-            print "communicate(%s): data:%s in input_list: %s"%(input_list, data, input_list)
-            self.process.stdin.write(data)
-            print "communicate(%s): process: %s"%(input_list, self.process)
-            self.process.stdin.flush()
+        print "communicate(%s)"%(inp,)
+        print >>self.process.stdin, inp
 
     def readline(self):
         def readline_threaded():
             self.last_line = self.process.stdout.readline()
         t = Thread(target=readline_threaded)
         t.start()
-        t.join(1)
+        t.join(3)
         return self.last_line
 
 
@@ -73,8 +70,10 @@ class GameMaster(object):
 
             try:
                 urls = ["http://localhost:5000/"+x['files'] for x in jsonz['players']]
-            except:
+            except Exception as e:
+                print "NO GOOD, CONTINUE!: %s" % (e,)
                 continue # UGLY SHIIIT!
+
             self.setUp(urls[0], urls[1])
             self.reportWinner(self.playMatch())
 
@@ -137,7 +136,7 @@ class GameMaster(object):
         for turn in range(turns):
             # p1 gets to guess
             guess = -1
-            self.p1.communicate(["guess\n"])
+            self.p1.communicate("guess")
             try:
                 guess = int(self.p1.readline())
                 print 'Player one: "I guess: %d."'%(guess,)
@@ -147,7 +146,7 @@ class GameMaster(object):
             if guess == secret_number:
                 return [1,0]
             # p2 tries to guess the number
-            self.p2.communicate(["guess\n"])
+            self.p2.communicate("guess")
             try:
                 guess = int(self.p2.readline())
                 print 'Player two: "I guess: %d."'%(guess,)
@@ -168,6 +167,3 @@ if __name__ == "__main__":
     url = "http://localhost:5000/match/get/2" # should be sys.argv[1]
     gm = GameMaster(url)
     gm.run()
-
-
-    
