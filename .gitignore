@@ -1,3 +1,4 @@
 *~
 #*#
 *.pyc
+staticfiles/uploaded_files/*
