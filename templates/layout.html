@@ -20,4 +20,7 @@
   {% for k,v in session.iteritems() %}
     {{ k }}: {{ v }}<br />
   {% endfor %}
+  {% for error in errors%}
+    {{ error }} </br>
+  {% endfor %}
 </div>

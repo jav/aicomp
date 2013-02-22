@@ -1,6 +1,7 @@
 from flask import jsonify
 import unittest
 
+from database import init_db, db_session
 import webfront
 
 class WebFrontTestCase(unittest.TestCase):
