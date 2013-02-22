@@ -7,7 +7,7 @@ from database import Base, db_session
 from player import Player
 
 class Account(Base):
-    __tablename__ = 'accounts'
+    __tablename__ = 'account'
 
     id = Column(Integer, primary_key=True)
     user = Column(String)

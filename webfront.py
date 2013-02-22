@@ -42,15 +42,12 @@ def register():
         else:
             (user, password, email) = [request.form[x] for x in ['user', 'password1', 'email']]
             print (user, password, email)
-            err = create_account(user, password, email)
-            if err:
-                error.append(err)
-            else:
-                session['logged_in'] = True
-                session['user'] = db_session.query(Account).filter_by(user=user).first()
+            account = create_account(user, password, email)
+            session['logged_in'] = True
+            session['user'] = db_session.query(Account).filter_by(user=user).first()
 
-            return redirect(url_for('front_page', error=error))
-    return render_template('register.html', error=error)    # Create a new user
+            return redirect(url_for('front_page', errors=error))
+    return render_template('account_register.html', errors=error)    # Create a new user
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -96,7 +93,7 @@ def player_list():
         return "REQUIRES LOGIN"
     acc = session['user']
     players=acc.get_players()
-    return render_template('players_for_account.html', players=players)
+    return render_template('player_list.html', players=players)
 
 @app.route('/player/add', methods=['GET', 'POST'])
 def player_add():
@@ -142,12 +139,12 @@ def player_add():
                 session['logged_in'] = True
                 session['user'] = db_session.query(Account).filter_by(user=user).first()
 
-            return redirect(url_for('front_page', error=error))
+            return redirect(url_for('player_list', errors=error))
 
-    return redirect(url_for('front_page', error=error))
+    return redirect(url_for('player_list', errors=error)) # Redirect, because you shouldn't get here through GET
 
-@app.route('/player/modify', methods=['GET', 'POST'])
-def player_modify():
+@app.route('/player/edit/<int:acc_id>/<int:pl_id>', methods=['GET', 'POST'])
+def player_edit(acc_id, pl_id):
     # NO! Not OK!
     # Modifying an existing and ranked player is uncool
     # We should be able to learn from the submissions, and
@@ -155,7 +152,20 @@ def player_modify():
     # nope nope nope nope. Uncool!
     # Well, enable/disable would be nice.
     # And maybe a comment (or log field)
-    return "NOT YET IMPLEMENTED"
+
+    if not is_logged_in():
+        return render_template('frontpage.html', errors="Login required.")
+    error = []
+    player = db_session.query(Player).filter_by(owner=acc_id).filter_by(id=pl_id).first()
+    if not player:
+        return "NO SUCH PLAYER!"
+    if session['user'].id != player.owner:
+        return "NOT YOUR PLAYER! Your id is %d, player owner is: %d" % (session['user'].id, player.owner)
+
+    if request.method == 'POST':
+        return render_template('player_edit.html', player=player, errors=error)
+
+    return render_template('player_edit.html', player=player, errors=error)
 
 @app.route('/player/delete', methods=['GET', 'POST'])
 def player_delete():
@@ -175,9 +185,9 @@ def get_accounts(start=0, end=-1):
 
 def create_account(user, passwd, email):
     if db_session.query(Account).filter_by(user=user).first() is not None:
-        return False
+        raise TypeError("Username already exists.")
     if db_session.query(Account).filter_by(email=email).first() is not None:
-        return False
+        raise TypeError("E-mail already registered.")
 
     acc = Account(user=user, passwd=passwd, email=email)
     db_session.add(acc)
@@ -187,7 +197,7 @@ def create_account(user, passwd, email):
 def create_player(**kwargs):
     for k in ['owner', 'desc']:
         if k not in kwargs:
-            return False
+            raise TypeError("Either owner or desc not defined")
 
     # TODO: player should have a foregin key to its owner
     # TODO: Doublecheck that the owner exists

@@ -1,14 +1,15 @@
-from sqlalchemy import Column, Integer, String, MetaData
+from sqlalchemy import Column, Integer, String, Boolean, MetaData
 
 from database import Base, db_session
 
 class Player(Base):
-    __tablename__ = 'players'
+    __tablename__ = 'player'
 
     id = Column(Integer, primary_key=True)
-    owner = Column(String)
+    owner = Column(Integer)
     desc = Column(String)
     files = Column(String)
+    enabled = Column(Boolean)
 
     def __init__(self, **kwargs):
         if 'owner' not in kwargs:
@@ -26,3 +27,13 @@ class Player(Base):
 
     def get_files_uri(self):
         return self.files
+
+    def serialize(self):
+        '''Return object data in easily serializeable format'''
+        return {
+            'id'      : self.id,
+            'owner'   : self.owner,
+            'desc'    : self.desc,
+            'files'   : self.files,
+            'enabled' : self.enabled
+        }
