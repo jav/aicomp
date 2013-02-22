@@ -3,6 +3,8 @@ import os
 import subprocess
 import tarfile
 import sys
+import time
+import urllib2
 
 from threading import Thread
 
@@ -17,6 +19,7 @@ class ProcessHandler():
         self.process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     def communicate(self,input_list):
+        # TODO: blocking?
         for data in input_list:
             self.process.stdin.write(data)
 
@@ -34,13 +37,37 @@ class ProcessHandler():
 class GameMaster(object):
 
     """
-    Creates a new GameMaster with two strings, one path
-    to each .tar object. 
-
-    The .tar should contain a manifest.json in the root
-    directory.
+    Create a GameMaster with a coordinator. GameMaster will poll
+    the Coordinator for jobs.
     """
-    def __init__(self, player1, player2):
+    def __init__(self, coordinator):
+        self.coordinator = coordinator
+
+    """
+    Enter work-polling mode.
+    """
+    def run(self):
+        while True:
+            print "checking for data ..."
+            
+            # Check if the coordinator has any jobs for us, if so play a game,
+            # and report the result back to the coordinator.
+            
+            # REST API for fetching game information
+            req = urllib2.Request("http://ws.spotify.com/search/1/track.json?q=kaizers+orchestra")
+            opener = urllib2.build_opener()
+            f = opener.open(req)
+            jsonz = json.load(f)
+            
+            print jsonz
+
+            # check json file for paths, call setUp with player paths, then do
+            # playMatch
+
+            time.sleep(1)
+        return
+
+    def setUp(self, player1, player2):
         self.player1 = player1 
         self.player2 = player2
     
@@ -67,11 +94,8 @@ class GameMaster(object):
         self.p1 = ProcessHandler(player1_bin_args)
         self.p2 = ProcessHandler(player2_bin_args)
 
-class guessTheNumberMaster(GameMaster):
-    def __init__(self, p1, p2):
-        GameMaster.__init__(self,p1,p2)
-    
     def playMatch(self):
+        print "PLAYING GAME!"
         # p1 thinks about a number
         self.p1.communicate("think\n")
         number = int(self.p1.readline())
