@@ -18,21 +18,30 @@ def get_challenge_from_queue(nr_p):
     if there are not enough players:
     { "match_id": -1, "error": <str:errmsg>
     '''
-    challenge_queue = app.config['CHALLENGE_QUEUE']
-    players = []
-    match = challenge_queue.get_match(2)
-    db_session.add(match)
-    db_session.commit()
+    try:
+        challenge_queue = app.config['CHALLENGE_QUEUE']
+        players = []
+        match = challenge_queue.get_match(2)
+        db_session.add(match)
+        db_session.commit()
 
-    return jsonify(match.serialize())
+        return jsonify(match.serialize())
+
+    except Exception:
+        return jsonify([])
+
 
 @app.route('/match/list/json')
 def match_list_json():
     matches = []
-    for match in db_session.query(Match).all():
-        matches.append(match.serialize())
-        #print matches
-    return jsonify([x.serialize() for x in db_session.query(Match).all() ] )
+    try:
+        for match in db_session.query(Match).all():
+            matches.append(match.serialize())
+            #print matches
+
+        return jsonify([x.serialize() for x in db_session.query(Match).all() ] )
+    except Exception:
+        return jsonify([])
 
 @app.route('/player/<int:player_id>/files')
 def get_player_files(player_id):
