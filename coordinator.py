@@ -43,11 +43,23 @@ def match_list_json():
     except Exception:
         return jsonify([])
 
+@app.route('match/report/<int:match_id>')
+def match_report(match_id):
+    if request.method != 'POST':
+        return "ERROR: MUST(rfc2119) use POST"
+
+    
+    return
+
 @app.route('/player/<int:player_id>/files')
 def get_player_files(player_id):
     pass
 
 if __name__ == '__main__':
+    config = json.load(open('coordinator.conf','r'))
+    for k,v in config.iteritems():
+        app.config[k] = v
+    print "app.config", app.config
     init_db()
     app.config['CHALLENGE_QUEUE'] = ChallengeQueue()
-    app.run(debug=True)
+    app.run(port=app.config['PORT'], debug=app.config['DEBUG'])

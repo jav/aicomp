@@ -214,7 +214,6 @@ def is_logged_in():
 
 if __name__ == "__main__":
     config = json.load(open('webfront.conf','r'))
-
     for k,v in config.iteritems():
         app.config[k] = v
 
@@ -223,4 +222,4 @@ if __name__ == "__main__":
     init_db()
 
     app.secret_key = 'UNKNOWN_STRING' #Yes, a popular reference. Let's later fix this (famous last words)
-    app.run(port=app.config['PORT'])
+    app.run(port=app.config['PORT'], debug=app.config['DEBUG'])
