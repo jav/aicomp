@@ -213,7 +213,6 @@ def is_logged_in():
     return True
 
 if __name__ == "__main__":
-    config = {}
     config = json.load(open('webfront.conf','r'))
 
     for k,v in config.iteritems():
