@@ -79,7 +79,7 @@ class GameMaster(object):
                 continue # UGLY SHIIIT!
 
 
-            self.reportWinner(
+            self.reportMatchResult(
                 self.playMatch(
                     self.setUpMatch(
                         jsonz,
@@ -147,7 +147,7 @@ class GameMaster(object):
                 return [1 if p['id'] == player['id'] else 0 for p in match['players']] # This would be more readable with map() and a support function, code-golf FTL.
         return [0 for x in match['players']] # Tied game
 
-    def reportWinner(self):
+    def reportMatchResult(self, match):
         #This should call the coordinator and let it know what the result was
         pass
 
