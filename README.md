@@ -5,6 +5,19 @@ Intentions of this repo.
 
 Create a platform for AIs to compete.
 
+How to run
+==========
+Start the web-ui - python webfront.py
+Start the coordinator - python coordinator.py
+Now, make sure you observe on which ip:port the coordinator runs on (in future versions, this will be configurable)
+Configure the worker(s), add the coordinator ip:port to poll for work.
+Start the worker(s) - python game_master.py
+
+WOHO!
+
+More text (should be edited)
+============================
+
 It should consist of:
 A nice web-ui allowing account registration and player upload.
 A player is a tarball containings configuration and 'binaries' to execute.

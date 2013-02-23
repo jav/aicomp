@@ -36,13 +36,17 @@ class ProcessHandler():
 
 
 class GameMaster(object):
-
     """
     Create a GameMaster with a coordinator. GameMaster will poll
     the Coordinator for jobs.
     """
+    config = {}
+
     def __init__(self, coordinator):
+        # Redundant with the internal 'config' dict.
+        # Osk: Which should stay?
         self.coordinator = coordinator
+
 
     """
     Enter work-polling mode.
@@ -55,7 +59,7 @@ class GameMaster(object):
             # and report the result back to the coordinator.
 
             # REST API for fetching game information
-            req = urllib2.Request("http://localhost:5000/match/get/2")
+            req = urllib2.Request(self.config['COORDINATOR_URL'] + "match/get/2")
 
             opener = urllib2.build_opener()
             f = opener.open(req)
@@ -69,101 +73,86 @@ class GameMaster(object):
             print jsonz
 
             try:
-                urls = ["http://localhost:5000/"+x['files'] for x in jsonz['players']]
+                urls = [self.config['COORDINATOR_URL']+x['files'] for x in jsonz['players']]
             except Exception as e:
                 print "NO GOOD, CONTINUE!: %s" % (e,)
                 continue # UGLY SHIIIT!
 
-            self.setUp(urls[0], urls[1])
-            self.reportWinner(self.playMatch())
+
+            self.reportWinner(
+                self.playMatch(
+                    self.setUpMatch(
+                        jsonz,
+                        self.config['COORDINATOR_URL'])
+                    )
+                )
 
             time.sleep(1)
         return
 
-    def setUp(self, player1_url, player2_url):
-        (self.player1_fh, self.player1) = tempfile.mkstemp()
-        (self.player2_fh, self.player2) = tempfile.mkstemp()
+    def setUpMatch(self, match, config):
+        for player in match['players']:
+            player['url'] = self.config['COORDINATOR_URL']+player['files']
+            (player['local_tar_file_fh'], player['local_tar_file']) = tempfile.mkstemp()
+            print "Opening url: %s" % (player['url'],)
+            req = urllib2.urlopen(player['url'])
+            CHUNK = 16 * 1024
+            with open(player['local_tar_file'], 'wb') as fp:
+                while True:
+                    chunk = req.read(CHUNK)
+                    if not chunk: break
+                    fp.write(chunk)
 
-        print "Opening url: %s" % (player1_url,)
-        req = urllib2.urlopen(player1_url)
-        CHUNK = 16 * 1024
-        with open(self.player1, 'wb') as fp:
-            while True:
-                chunk = req.read(CHUNK)
-                if not chunk: break
-                fp.write(chunk)
+            player['tar'] = tarfile.open(player['local_tar_file'])
+            player['local_files'] = tempfile.mkdtemp()
+            player['tar'].extractall(player['local_files'])
+            print "player['local_files']:",player['local_files']
+            print "os.join():", os.path.join(player['local_files'], "manifest.json")
+            player['manifest'] = os.path.join(player['local_files'], "manifest.json")
+            print "player['manifest']:", player['manifest']
+            player['exec'] = os.path.join(player['local_files'], json.load(open(player['manifest'], 'r'))['executable'])
 
-        print "Opening url: %s" % (player2_url,)
-        req = urllib2.urlopen(player2_url)
-        CHUNK = 16 * 1024
-        with open(self.player2, 'wb') as fp:
-            while True:
-                chunk = req.read(CHUNK)
-                if not chunk: break
-                fp.write(chunk)
+            # make the players talk!
+            player['bin_args'] = ["python",os.path.join(os.getcwd(),player['exec'])]
 
+        def mkProcessHandlers(player):
+            print "mkProcesshandlers(%s)"%(player,)
+            player['process'] = ProcessHandler(["python",os.path.join(os.getcwd(), player['exec'])])
+            return player
 
-        p1_tar = tarfile.open(self.player1)
-        p2_tar = tarfile.open(self.player2)
-        p1_tar.extractall(DIR_PREFIX + "/1")
-        p2_tar.extractall(DIR_PREFIX + "/2")
-
-        config_paths = [DIR_PREFIX+"/1/manifest.json",DIR_PREFIX+"/2/manifest.json"]
-        files = []
-        # open the config files
-        for p in config_paths:
-            files.append(open(p))
-        # JSON parse them
-        configs = map(json.load,files)
-        # and close them
-        for f in files:
-            f.close()
-
-        # make the players talk!
-        player1_bin_args = ["python",os.getcwd()+"/"+DIR_PREFIX+"/1/" + configs[0]['executable']]
-        player2_bin_args = ["python",os.getcwd()+"/"+DIR_PREFIX+"/2/" + configs[1]['executable']]
-
-        self.p1 = ProcessHandler(player1_bin_args)
-        self.p2 = ProcessHandler(player2_bin_args)
+        print "map(mkProcessHandlers, player=%s)"%(match['players'],)
+        match['players'] = map(mkProcessHandlers, match['players'])
+        return match
+#        self.p2 = ProcessHandler(player2_bin_args)
 
 
 
-    def playMatch(self):
+    def playMatch(self, match):
         secret_number=randrange(1,10)
         print "PLAYING GAME: Guess %d"%(secret_number,)
 
+        print "match:", match
         turns = 100
         for turn in range(turns):
-            # p1 gets to guess
-            guess = -1
-            self.p1.communicate("guess")
+            for player in match['players']:
+                guess = -1
+                player['process'].communicate("guess")
             try:
-                guess = int(self.p1.readline())
-                print 'Player one: "I guess: %d."'%(guess,)
+                guess = int(player['process'].readline())
+                print 'Player %d: "I guess: %d."'%(player['id'], guess)
             except Exception as ex:
-                print 'Player one: "I pass.", %s'%(ex,)
+                print 'Player %d: "I pass.", %s'%(player['id'], ex)
                 pass
             if guess == secret_number:
-                return [1,0]
-            # p2 tries to guess the number
-            self.p2.communicate("guess")
-            try:
-                guess = int(self.p2.readline())
-                print 'Player two: "I guess: %d."'%(guess,)
-            except:
-                print 'Player two: "I pass.", %s'%(ex,)
-                pass
-            if guess == secret_number:
-                return [0,1]
-
-        return [0,0] # Tied game
+                return [1 if p['id'] == player['id'] else 0 for p in match['players']] # This would be more readable with map() and a support function, code-golf FTL.
+        return [0 for x in match['players']] # Tied game
 
     def reportWinner(self):
         #This should call the coordinator and let it know what the result was
         pass
 
 if __name__ == "__main__":
-
-    url = "http://localhost:5000/match/get/2" # should be sys.argv[1]
-    gm = GameMaster(url)
+    config = json.load(open('game_master.conf','r'))
+    gm = GameMaster(config['COORDINATOR_URL'])
+    gm.config = config
     gm.run()
