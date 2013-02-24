@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from flask import Flask, jsonify
+import json
 
 from database import init_db, db_session
 from challenge_queue import ChallengeQueue
@@ -43,12 +44,11 @@ def match_list_json():
     except Exception:
         return jsonify([])
 
-@app.route('match/report/<int:match_id>')
+@app.route('/match/report/<int:match_id>')
 def match_report(match_id):
     if request.method != 'POST':
         return "ERROR: MUST(rfc2119) use POST"
-
-    
+    print "request.form:", request.form
     return
 
 @app.route('/player/<int:player_id>/files')
