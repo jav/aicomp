@@ -5,10 +5,12 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+from threading import Thread
 import time
+import urllib
 import urllib2
 
-from threading import Thread
+
 
 # directory in which to unpack packages
 # (should be a separate partition and properly sandboxed)
@@ -59,7 +61,8 @@ class GameMaster(object):
             # and report the result back to the coordinator.
 
             # REST API for fetching game information
-            req = urllib2.Request(self.config['COORDINATOR_URL'] + "match/get/2")
+            url = self.config['COORDINATOR_URL'] + "match/get/2"
+            req = urllib2.Request(url)
 
             opener = urllib2.build_opener()
             f = opener.open(req)
@@ -79,20 +82,26 @@ class GameMaster(object):
                 continue # UGLY SHIIIT!
 
 
+            print "jsonz:", jsonz
+
             self.reportMatchResult(
-                self.playMatch(
-                    self.setUpMatch(
-                        jsonz,
-                        self.config['COORDINATOR_URL'])
+                **self.playMatch(
+                    **self.setUpMatch(
+                        match=jsonz,
+                        config=self.config)
                     )
                 )
 
             time.sleep(1)
         return
 
-    def setUpMatch(self, match, config):
-        for player in match['players']:
-            player['url'] = self.config['COORDINATOR_URL']+player['files']
+    def setUpMatch(self, **kwargs):
+        match = kwargs['match']
+        config = kwargs['config']
+        print 'setUpMatch(match=%s, config=%s)'%(match, config)
+        for i in range(len(match['players'])):
+            player = match['players'][i]
+            player['url'] = config['COORDINATOR_URL']+player['files']
             (player['local_tar_file_fh'], player['local_tar_file']) = tempfile.mkstemp()
             print "Opening url: %s" % (player['url'],)
             req = urllib2.urlopen(player['url'])
@@ -114,6 +123,8 @@ class GameMaster(object):
 
             # make the players talk!
             player['bin_args'] = ["python",os.path.join(os.getcwd(),player['exec'])]
+            match['players'][i] = player
+        print "match['players']",match['players']
 
         def mkProcessHandlers(player):
             print "mkProcesshandlers(%s)"%(player,)
@@ -122,17 +133,20 @@ class GameMaster(object):
 
         print "map(mkProcessHandlers, player=%s)"%(match['players'],)
         match['players'] = map(mkProcessHandlers, match['players'])
-        return match
+        return {'match':match, 'config':config}
 #        self.p2 = ProcessHandler(player2_bin_args)
 
 
 
-    def playMatch(self, match):
+    def playMatch(self, **kwargs):
+        match = kwargs['match']
+        config = kwargs['config']
+
         secret_number=randrange(1,10)
         print "PLAYING GAME: Guess %d"%(secret_number,)
 
         print "match:", match
-        turns = 100
+        turns = 6
         for turn in range(turns):
             for player in match['players']:
                 guess = -1
@@ -144,12 +158,27 @@ class GameMaster(object):
                 print 'Player %d: "I pass.", %s'%(player['id'], ex)
                 pass
             if guess == secret_number:
-                return [1 if p['id'] == player['id'] else 0 for p in match['players']] # This would be more readable with map() and a support function, code-golf FTL.
-        return [0 for x in match['players']] # Tied game
+                print "WE HAVE A WINRAR!!!"
+                match['result'] = dict([(p['id'],1) if p['id'] == player['id'] else (p['id'],0) for p in match['players']]) # This would be more readable with map() and a support function, code-golf FTL.
+                return {'match':match, 'config': config}
 
-    def reportMatchResult(self, match):
-        #This should call the coordinator and let it know what the result was
-        pass
+        print "DRAW GAME!"
+        match['result'] = [(x['id'], 0) for x in match['players']] # Tied game
+        return {'match':match, 'config': config}
+
+    def reportMatchResult(self, **kwargs):
+        match=kwargs['match']
+        config=kwargs['config']
+        # We really don't need all the info in match, we could/should
+        # filter out local-scope things
+        print "reportMatchResult(): config:", config
+
+        url = '%smatch/report/%d'%(config['COORDINATOR_URL'],int(match['id']))
+        req = urllib2.Request(url)
+
+        req.add_data(urllib.urlencode(match))
+        print 'urllib2.get_method(%s): %s'% (req.get_full_url(), req.get_method())
+        r=urllib2.urlopen(req)
 
 if __name__ == "__main__":
     config = json.load(open('game_master.conf','r'))

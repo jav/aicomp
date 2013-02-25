@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, session
+from flask import request
+
 import json
 
 from database import init_db, db_session
@@ -44,12 +46,15 @@ def match_list_json():
     except Exception:
         return jsonify([])
 
-@app.route('/match/report/<int:match_id>')
+@app.route('/match/report/<int:match_id>', methods=['POST'])
 def match_report(match_id):
-    if request.method != 'POST':
-        return "ERROR: MUST(rfc2119) use POST"
-    print "request.form:", request.form
-    return
+    print "request.method:", request.method
+    match_post = request.form
+    print "assert %d == %d" %(int(match_post['id']), match_id)
+    assert int(match_post['id']) == match_id
+    match = db_session.query(Match).filter_by(id = match_id).first()
+    print "match_post", match_post
+    return "null"
 
 @app.route('/player/<int:player_id>/files')
 def get_player_files(player_id):
