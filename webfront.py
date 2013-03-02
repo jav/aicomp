@@ -15,6 +15,7 @@ from werkzeug import secure_filename
 from account import Account
 from database import init_db, db_session
 from player import Player
+from match import Match
 
 app = Flask(__name__)
 
@@ -172,6 +173,12 @@ def player_delete():
     # Removing a player entierly is ok.
     # Keep in mind to not reuse key-id (id, name, whatever)
     return "NOT YET IMPLEMENTED"
+
+@app.route('/match/list')
+def player_list():
+    matches = db_session.query(Match).all()
+    return render_template('match_list.html', matches=matches)
+
 
 # Wrong verison of Flask?
 #@app.teardown_request
