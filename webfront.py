@@ -174,10 +174,20 @@ def player_delete():
     # Keep in mind to not reuse key-id (id, name, whatever)
     return "NOT YET IMPLEMENTED"
 
-@app.route('/match/list')
+
+@app.route('/player/list')
 def player_list():
+    if not session['logged_in']:
+        return "REQUIRES LOGIN"
+    acc = session['user']
+    players=acc.get_players()
+    return render_template('player_list.html', players=players)
+
+@app.route('/match/list')
+def match_list():
     matches = db_session.query(Match).all()
     return render_template('match_list.html', matches=matches)
+
 
 
 # Wrong verison of Flask?
