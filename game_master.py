@@ -29,6 +29,7 @@ class ProcessHandler():
         print >>self.process.stdin, inp
 
     def readline(self):
+        self.last_line = ""
         def readline_threaded():
             self.last_line = self.process.stdout.readline()
         t = Thread(target=readline_threaded)
@@ -64,6 +65,7 @@ class GameMaster(object):
             url = self.config['COORDINATOR_URL'] + "match/get/2"
             req = urllib2.Request(url)
 
+            print "Fetching data from url:" ,url
             opener = urllib2.build_opener()
             f = opener.open(req)
             jsonz = json.load(f)
@@ -72,8 +74,6 @@ class GameMaster(object):
 
             # check json file for paths, call setUp with player paths, then do
             # playMatch
-
-            print jsonz
 
             try:
                 urls = [self.config['COORDINATOR_URL']+x['files'] for x in jsonz['players']]
