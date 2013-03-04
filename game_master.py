@@ -55,7 +55,13 @@ class GameMaster(object):
     Enter work-polling mode.
     """
     def run(self):
+        game_count = 0
         while True:
+            if gm.config.get('MATCHLIMIT',-1) >= 0:
+                if game_count >= gm.config['MATCHLIMIT']:
+                    break
+            game_count += 1
+
             print "checking for data ..."
 
             # Check if the coordinator has any jobs for us, if so play a game,
@@ -184,4 +190,10 @@ if __name__ == "__main__":
     config = json.load(open('game_master.conf','r'))
     gm = GameMaster(config['COORDINATOR_URL'])
     gm.config = config
+    try:
+        gm.config['MATCHLIMIT'] = int(sys.argv[1] if len(sys.argv) > 1 else -1)
+    except:
+        print "Argument 1, number of matches not an integer."
+        exit(1)
+
     gm.run()
