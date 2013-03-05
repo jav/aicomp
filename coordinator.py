@@ -48,13 +48,23 @@ def match_list_json():
 
 @app.route('/match/report/<int:match_id>', methods=['POST'])
 def match_report(match_id):
-    print "request.method:", request.method
+    print "match_report(%d): request.method: %s"%(match_id, request.method)
     match_post = request.form
+    for k,v in match_post.iteritems():
+        print "k: %s, v: %s"%(k,v)
+#    print "match_post: %s"%(match_post,)
     print "assert %d == %d" %(int(match_post['id']), match_id)
     assert int(match_post['id']) == match_id
+    print "assert OK!"
     match = db_session.query(Match).filter_by(id = match_id).first()
+    print "Match loaded: %s"%(match)
+    print "Match state: %s"%(match_post['state'],)
+    match.state = match_post['state']
     print "match_post", match_post
-    return "null"
+    db_session.add(match)
+    db_session.commit()
+    return "MATCH REPORT RECEIVED!"
+
 
 @app.route('/player/<int:player_id>/files')
 def get_player_files(player_id):

@@ -147,7 +147,7 @@ class GameMaster(object):
     def playMatch(self, **kwargs):
         match = kwargs['match']
         config = kwargs['config']
-
+        match['state'] = "inprogress"
         secret_number=randrange(1,10)
         print "PLAYING GAME: Guess %d"%(secret_number,)
 
@@ -165,15 +165,21 @@ class GameMaster(object):
                 pass
             if guess == secret_number:
                 print "WE HAVE A WINRAR!!!"
-                match['result'] = dict([(p['id'],1) if p['id'] == player['id'] else (p['id'],0) for p in match['players']]) # This would be more readable with map() and a support function, code-golf FTL.
+                result = [1 if p['id'] == player['id'] else 0 for p in match['players']]
+                match['players'] = zip(match['players'], result)
+                # result = dict([(p['id'],1) if p['id'] == player['id'] else (p['id'],0) for p in match['players']]) # This would be more readable with map() and a support function, code-golf FTL.
+                match['state'] = "sucessfull"
                 return {'match':match, 'config': config}
 
         print "DRAW GAME!"
-        match['result'] = [(x['id'], 0) for x in match['players']] # Tied game
+        # result = [(x['id'], 0) for x in match['players']] # Tied game
+        match['players'] = zip(match['players'], [0 for x in match['players'] ])
+        match['state'] = "sucessfull"
         return {'match':match, 'config': config}
 
     def reportMatchResult(self, **kwargs):
         match=kwargs['match']
+        print "reportMatchResult(): match: %s"%(match,)
         config=kwargs['config']
         # We really don't need all the info in match, we could/should
         # filter out local-scope things
