@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block body %}
+  <ul class=entries>
+  <table border="1">
+  {% for player in players %}
+    <tr>
+      <td>
+        <a href="{{ url_for('player_edit', acc_id=player.owner, pl_id=player.id) }}">{{ player.desc }}</a></td>
+      <td>id: {{ player.id }}</td>
+      <td>Files: {{ player.files }}</td>
+      <td>Enabled: {{ player.enabled }}</td>>
+    </tr>
+  {% else %}
+    <tr>
+      <td>
+        <em>Unbelievable.  No entries here so far!</em>
+      </td>
+    </tr>
+  {% endfor %}
+  </table>
+  </ul>
+    <form action="{{ url_for('player_add') }}" method="POST" class="register" enctype="multipart/form-data" >
+      <dl>
+        <dt>Desc:
+        <dd><textarea name="desc"></textarea>
+        <dt>FILEZ!:
+        <dd><input type="file" name="player_archive" />
+        <dd><input type="submit" value="Upload!" />
+      </dl>
+    </form>
+{% endblock %}

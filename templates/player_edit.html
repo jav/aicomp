@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block body %}
+    <form action="{{ url_for('player_add') }}" method="POST" class="register" enctype="multipart/form-data" >
+      <dl>
+        <dt>ID: {{ player.id }}
+        <dt>Desc:
+        <dd><textarea name="desc">{{ player.desc }}</textarea>
+        <dt>FILEZ!:
+        <dd><input type="file" name="player_archive" />
+        <dd><input type="submit" value="Upload!" />
+      </dl>
+    </form>
+{% endblock %}
