@@ -27,10 +27,11 @@ def get_challenge_from_queue(nr_p):
         match = challenge_queue.get_match(2)
         db_session.add(match)
         db_session.commit()
-
+        print "match.serialize()", match.serialize()
         return jsonify(match.serialize())
 
-    except Exception:
+    except Exception as ex:
+        print "get_challenge_from_queue(): Exception: %s"%(ex,)
         return jsonify([])
 
 
