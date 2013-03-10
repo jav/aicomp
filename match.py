@@ -1,55 +1,55 @@
 from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy import Enum, MetaData, ForeignKey, Table
+from sqlalchemy.ext.orderinglist import ordering_list
 from sqlalchemy.orm import relationship
 
 from database import Base, db_session
 from player import Player
 
-player_to_match_relation = Table('player_to_match_relation', Base.metadata,
-    Column('player_id', Integer, ForeignKey('player.id')),
-    Column('match_id', Integer, ForeignKey('match.id'))
-)
+class PlayerResult(Base):
+    __tablename__ = 'playerresult'
 
-player_to_matchresultelement_relation = Table('player_to_matchresultelement_relation', Base.metadata,
-    Column('player_id', Integer, ForeignKey('player.id')),
-    Column('matchresultelement_id', Integer, ForeignKey('matchresultelement.id'))
-)
+    result= Column(Integer)
+    player_id = Column(Integer,ForeignKey('player.id'), primary_key=True)
+    match_id = Column(Integer, ForeignKey('match.id'), primary_key=True)
+    player = relationship(Player, primaryjoin="Player.id==PlayerResult.player_id")
+    position = Column(Integer)
 
+    def __init__(self, player, result=0):
+        self.player=player
+        self.result=result
 
-class MatchResultElement(Base):
-    __tablename__ = 'matchresultelement'
-
-    id = Column(Integer, primary_key=True) # There should be a better primary key for this!
-    match_id = Column(Integer, ForeignKey("match.id"), primary_key=True)
-    player_id = Column(Integer, ForeignKey("player.id"))
-    relationship(Player, secondary=player_to_matchresultelement_relation)
-    score = Column(Integer)
-
+    def serialize(self):
+        return {
+            "result": self.result,
+            "player_id": self.player_id,
+            "match_id": self.match_id,
+            "player": self.player.serialize(),
+            "position": self.position
+            }
 
 class Match(Base):
     __tablename__ = 'match'
 
     id = Column(Integer, primary_key=True)
-    players = relationship(Player, secondary=player_to_match_relation)
-    state = Column(String) #Enum('inprogress', 'sucessfull', 'unplaid', 'unsucessfull')
-    result = relationship(MatchResultElement, primaryjoin="Match.id == MatchResultElement.match_id")
+    state = Column(String) #Enum('inprogress', 'sucessfull', 'unplayed', 'unsucessfull')
+    playerresults = relationship(PlayerResult, primaryjoin="PlayerResult.match_id==Match.id", order_by="PlayerResult.position", collection_class=ordering_list('position')) # This _should_ be able to be an association_proxy(), but I can't figure it out right now.
 
     def __init__(self, **kwargs):
         print "Match.__init__(%s)" %(kwargs,)
-        self.state = kwargs.get('state', 'unplaid')
-        print "Match.__init__(): self.players = %s" % (kwargs.get('players', []))
-        self.players = kwargs.get('players', [])
-        print "Match.__init__(): self.result = []"
-        self.result = []
-        print "Match.__init__() returns: self"
+        self.state = kwargs.get('state', 'unplayed')
+        for p in kwargs.get('players',[]):
+            pr = PlayerResult(p,0)
+            self.playerresults.append(pr)
+        #self.add_players(kwargs.get('players', []))
 
     def __repr__(self):
-        return "<Match(state: '%s', players: %s)>" % (self.state, self.players)
+        return "<Match(state: '%s', playerresults: %s)>" % (self.state, self.playerresults)
 
     def serialize(self):
-       '''Return object data in easily serializeable format'''
-       return {
-           'id'         : self.id,
-           'players': [x.serialize() for x in self.players],
-       }
+        '''Return object data in easily serializeable format'''
+        return {
+            'id'         : self.id,
+            'playerresults': [x.serialize() for x in self.playerresults]
+        }
 

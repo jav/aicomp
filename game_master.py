@@ -82,9 +82,9 @@ class GameMaster(object):
             # playMatch
 
             try:
-                urls = [self.config['COORDINATOR_URL']+x['files'] for x in jsonz['players']]
+                urls = [self.config['COORDINATOR_URL']+x['player']['files'] for x in jsonz['playerresults']]
             except Exception as e:
-                print "NO GOOD, CONTINUE!: %s" % (e,)
+                print "NO GOOD, CONTINUE! (exception: %s)" % (e.message,)
                 continue # UGLY SHIIIT!
 
 
