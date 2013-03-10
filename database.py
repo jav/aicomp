@@ -11,7 +11,9 @@ from sqlalchemy.schema import (
     )
 
 sqlite_db_file = "/tmp/test.db"
-engine = create_engine('sqlite://%s'%(sqlite_db_file,), convert_unicode=True)
+conn_str = 'sqlite://%s'%(sqlite_db_file,)
+print "Database connection string: %s"%(conn_str,)
+engine = create_engine(conn_str, convert_unicode=True)
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
                                          bind=engine))
