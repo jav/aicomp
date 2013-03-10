@@ -171,15 +171,18 @@ class GameMaster(object):
                 pass
             if guess == secret_number:
                 print "WE HAVE A WINRAR!!!"
-                result = [1 if p['id'] == player['id'] else 0 for p in match['playerresults']]
-                match['playerresults'] = zip(match['playerresults'], result)
+                result = [1 if pr['player']['id'] == player['id'] else 0 for pr in match['playerresults']]
+                for i in range(len(match['playerresults'])):
+                    match['playerresults'][i]['result'] = result[i]
+
                 # result = dict([(p['id'],1) if p['id'] == player['id'] else (p['id'],0) for p in match['playerresults']]) # This would be more readable with map() and a support function, code-golf FTL.
                 match['state'] = "sucessfull"
                 return {'match':match, 'config': config}
 
         print "DRAW GAME!"
         # result = [(x['id'], 0) for x in match['playerresults']] # Tied game
-        match['playerresults'] = zip(match['playerresults'], [0 for x in match['playerresults'] ])
+        for i in range(len(match['playerresults'])):
+            match['playerresults'][i]['result'] = 0
         match['state'] = "sucessfull"
         return {'match':match, 'config': config}
 

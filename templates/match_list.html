@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block body %}
+  <ul class=entries>
+  <table border="1">
+  {% for match in matches %}
+    <tr>
+      <td>id: {{ match.id }}</td>
+      <td>
+        <table border="2">
+          <tr>
+            <td>
+              <table>
+                {% for playerresult in match.playerresults %}
+                <tr>
+                  <td>
+                    {{ playerresult.player.desc}}
+                  </td>
+                  <td>
+                    {{ playerresult.result}}
+                  </td>
+                </tr>
+                {% endfor %}
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+      <td>State: {{ match.state }}</td>
+      <td>Result: {{ match.result }}</td>>
+    </tr>
+  {% else %}
+    <tr>
+      <td>
+        <em>Unbelievable.  No entries here so far!</em>
+      </td>
+    </tr>
+  {% endfor %}
+  </table>
+  </ul>
+{% endblock %}
