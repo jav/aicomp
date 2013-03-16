@@ -105,8 +105,8 @@ class GameMaster(object):
         match = kwargs['match']
         config = kwargs['config']
         print 'setUpMatch(match=%s, config=%s)'%(match, config)
-        for i in range(len(match['players'])):
-            player = match['players'][i]
+        for i in range(len(match['playerresults'])):
+            player = match['playerresults'][i]['player']
             player['url'] = config['COORDINATOR_URL']+player['files']
             (player['local_tar_file_fh'], player['local_tar_file']) = tempfile.mkstemp()
             print "Opening url: %s" % (player['url'],)
@@ -129,16 +129,20 @@ class GameMaster(object):
 
             # make the players talk!
             player['bin_args'] = ["python",os.path.join(os.getcwd(),player['exec'])]
-            match['players'][i] = player
-        print "match['players']",match['players']
+            match['playerresults'][i]['player'] = player
+        print "match['playerresults']",match['playerresults']
 
         def mkProcessHandlers(player):
             print "mkProcesshandlers(%s)"%(player,)
             player['process'] = ProcessHandler(["python",os.path.join(os.getcwd(), player['exec'])])
             return player
 
-        print "map(mkProcessHandlers, player=%s)"%(match['players'],)
-        match['players'] = map(mkProcessHandlers, match['players'])
+
+        print "map(mkProcessHandlers, playerresults=%s)"%(match['playerresults'],)
+
+        for i in range(len(match['playerresults'])):
+            match['playerresults'][i]['player'] = mkProcessHandlers(match['playerresults'][i]['player'])
+
         return {'match':match, 'config':config}
 #        self.p2 = ProcessHandler(player2_bin_args)
 
@@ -154,7 +158,9 @@ class GameMaster(object):
         print "match:", match
         turns = 6
         for turn in range(turns):
-            for player in match['players']:
+            for playerresult in match['playerresults']:
+                print "playerresult:", playerresult
+                player = playerresult['player']
                 guess = -1
                 player['process'].communicate("guess")
             try:
@@ -165,15 +171,18 @@ class GameMaster(object):
                 pass
             if guess == secret_number:
                 print "WE HAVE A WINRAR!!!"
-                result = [1 if p['id'] == player['id'] else 0 for p in match['players']]
-                match['players'] = zip(match['players'], result)
-                # result = dict([(p['id'],1) if p['id'] == player['id'] else (p['id'],0) for p in match['players']]) # This would be more readable with map() and a support function, code-golf FTL.
+                result = [1 if pr['player']['id'] == player['id'] else 0 for pr in match['playerresults']]
+                for i in range(len(match['playerresults'])):
+                    match['playerresults'][i]['result'] = result[i]
+
+                # result = dict([(p['id'],1) if p['id'] == player['id'] else (p['id'],0) for p in match['playerresults']]) # This would be more readable with map() and a support function, code-golf FTL.
                 match['state'] = "sucessfull"
                 return {'match':match, 'config': config}
 
         print "DRAW GAME!"
-        # result = [(x['id'], 0) for x in match['players']] # Tied game
-        match['players'] = zip(match['players'], [0 for x in match['players'] ])
+        # result = [(x['id'], 0) for x in match['playerresults']] # Tied game
+        for i in range(len(match['playerresults'])):
+            match['playerresults'][i]['result'] = 0
         match['state'] = "sucessfull"
         return {'match':match, 'config': config}
 
