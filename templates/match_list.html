@@ -12,12 +12,9 @@
               <table>
                 {% for playerresult in match.playerresults %}
                 <tr>
-                  <td>
-                    {{ playerresult.player.desc}}
-                  </td>
-                  <td>
-                    {{ playerresult.result}}
-                  </td>
+                  <td>Desc: {{ playerresult.player.desc}}</td>
+                  <td>Result: {{ playerresult.result}}</td>
+                  <td>Games played:{{ playerresult.games_played}}</td>
                 </tr>
                 {% endfor %}
               </table>

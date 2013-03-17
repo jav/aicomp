@@ -64,6 +64,13 @@ def match_report(match_id):
     print "match_post", match_post
     db_session.add(match)
     db_session.commit()
+
+    for playerresult in match.playerresults:
+        p = db_session.query(Player).filter_by(id=playerresult.player_id).first()
+        p.games_played += 1
+        db_session.add(p)
+        print "Player p:%s played a game, played games +=1"%(p,)
+    db_session.commit() #this might break for a 0-player game, but is that even possible?
     return "MATCH REPORT RECEIVED!"
 
 

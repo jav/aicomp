@@ -10,18 +10,21 @@ class Player(Base):
     desc = Column(String)
     files = Column(String)
     enabled = Column(Boolean)
+    games_played = Column(Integer)
 
     def __init__(self, **kwargs):
         if 'owner' not in kwargs:
             raise TypeError("A Player must have an owner.")
 
+        self.id = None
         self.owner = kwargs['owner']
         self.desc = kwargs.get('desc', '')
         self.files = kwargs.get('files', None)
         self.enabled = True
+        self.games_played = 0
 
     def __repr__(self):
-        return "<Player(owner:'%s', desc:'%s', files: %s)>" % (self.owner, self.desc, self.files)
+        return "<Player(id:%s owner:%d, desc:'%s', files: %s, games_played: %d)>" % (self.id, self.owner, self.desc, self.files, self.games_played)
 
     def serialize(self):
         '''Return object data in easily serializeable format'''
@@ -30,5 +33,6 @@ class Player(Base):
             'owner'   : self.owner,
             'desc'    : self.desc,
             'files'   : self.files,
-            'enabled' : self.enabled
+            'enabled' : self.enabled,
+            'games_played': self.games_played
         }

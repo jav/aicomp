@@ -8,7 +8,8 @@
         <a href="{{ url_for('player_edit', acc_id=player.owner, pl_id=player.id) }}">{{ player.desc }}</a></td>
       <td>id: {{ player.id }}</td>
       <td>Files: {{ player.files }}</td>
-      <td>Enabled: {{ player.enabled }}</td>>
+      <td>Enabled: {{ player.enabled }}</td>
+      <td>Games played: {{ player.games_played }}</td>
     </tr>
   {% else %}
     <tr>
