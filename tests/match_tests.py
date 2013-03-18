@@ -91,6 +91,6 @@ class MatchTestCase(unittest.TestCase):
         print match_persist
 
         serialized_match = match_persist.serialize()
-        assert len(seralized_match['playerresults']) == 2
+        assert len(serialized_match['playerresults']) == 2
 
         reset_db()
