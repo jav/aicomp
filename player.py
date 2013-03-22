@@ -11,6 +11,7 @@ class Player(Base):
     files = Column(String)
     enabled = Column(Boolean)
     games_played = Column(Integer)
+    score = Column(Integer)
 
     def __init__(self, **kwargs):
         if 'owner' not in kwargs:
@@ -22,9 +23,10 @@ class Player(Base):
         self.files = kwargs.get('files', None)
         self.enabled = True
         self.games_played = 0
+        self.score = 0
 
     def __repr__(self):
-        return "<Player(id:%s owner:%d, desc:'%s', files: %s, games_played: %d)>" % (self.id, self.owner, self.desc, self.files, self.games_played)
+        return "<Player(id:%s owner:%d, desc:'%s', files: %s, games_played: %d, score: %d)>" % (self.id, self.owner, self.desc, self.files, self.games_played, self.score)
 
     def serialize(self):
         '''Return object data in easily serializeable format'''
@@ -34,5 +36,6 @@ class Player(Base):
             'desc'    : self.desc,
             'files'   : self.files,
             'enabled' : self.enabled,
-            'games_played': self.games_played
+            'games_played': self.games_played,
+            'score'   : self.score
         }
